@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVATEMP - Ultimate Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --nova-orange: #ff6a00;
+            --nova-glow: #ffae00;
+            --bg-black: #020202;
+            --panel-bg: rgba(20, 20, 20, 0.95);
+        }
+
+        * { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: var(--bg-black); color: white; font-family: 'Rajdhani', sans-serif;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* NAVEGACIÓN */
+        nav {
+            display: flex; background: #000; border-bottom: 2px solid var(--nova-orange);
+            box-shadow: 0 0 30px rgba(255, 106, 0, 0.3); z-index: 100;
+        }
+        .tab-btn {
+            flex: 1; padding: 20px; background: transparent; border: none;
+            color: #666; font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+            font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: 0.3s;
+        }
+        .tab-btn.active {
+            color: var(--nova-orange); text-shadow: 0 0 15px var(--nova-orange);
+            background: linear-gradient(to bottom, transparent, rgba(255, 106, 0, 0.1));
+        }
+
+        /* CONTENIDO */
+        .content { display: none; flex: 1; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .content.active { display: flex; animation: powerOn 0.5s ease-out; }
+
+        @keyframes powerOn { from { opacity: 0; filter: brightness(2); } to { opacity: 1; filter: brightness(1); } }
+
+        .panel {
+            background: var(--panel-bg); border: 1px solid rgba(255, 106, 0, 0.3);
+            border-radius: 20px; padding: 40px; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            text-align: center; width: fit-content; min-width: 500px;
+        }
+
+        .display-huge {
+            font-family: 'Orbitron', sans-serif; font-size: 12vw; color: var(--nova-orange);
+            text-shadow: 0 0 20px var(--nova-orange), 0 0 40px var(--nova-glow);
+            margin: 10px 0; font-weight: 700;
+        }
+
+        /* INPUTS ESPECIALES */
+        .custom-time-input {
+            background: #000; border: 2px solid var(--nova-orange); color: var(--nova-orange);
+            font-family: 'Orbitron', sans-serif; font-size: 1.5rem; padding: 10px;
+            border-radius: 5px; text-align: center; margin-bottom: 20px; outline: none;
+            box-shadow: 0 0 10px var(--glow);
+        }
+
+        .nova-btn {
+            background: transparent; border: 2px solid var(--nova-orange);
+            color: var(--nova-orange); padding: 15px 30px; font-family: 'Orbitron', sans-serif;
+            cursor: pointer; border-radius: 4px; transition: 0.2s; margin: 5px;
+        }
+        .nova-btn:hover { background: var(--nova-orange); color: black; box-shadow: 0 0 25px var(--nova-orange); }
+
+        /* CALCULADORA */
+        .calc-wrapper { width: 100%; max-width: 650px; }
+        #calc-screen {
+            background: #000; color: var(--nova-orange); font-family: 'Orbitron', sans-serif;
+            font-size: 3rem; padding: 20px; text-align: right; border-radius: 10px;
+            border: 1px solid var(--nova-orange); margin-bottom: 15px;
+        }
+        .calc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .c-btn { padding: 15px; background: #111; border: 1px solid #333; color: white; cursor: pointer; border-radius: 8px; font-size: 1.2rem; }
+        .c-btn:hover { border-color: var(--nova-orange); color: var(--nova-orange); }
+
+        /* MARCADOR */
+        .team-input {
+            background: transparent; border: none; border-bottom: 2px solid #333;
+            color: white; font-family: 'Orbitron', sans-serif; font-size: 2rem;
+            text-align: center; width: 100%; outline: none; margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <button class="tab-btn active" onclick="show('tab-timer', this)">TIMER</button>
+    <button class="tab-btn" onclick="show('tab-chrono', this)">CHRONO</button>
+    <button class="tab-btn" onclick="show('tab-score', this)">SCORE</button>
+    <button class="tab-btn" onclick="show('tab-calc', this)">CALC</button>
+</nav>
+
+<!-- TEMPORIZADOR PERSONALIZABLE -->
+<div id="tab-timer" class="content active">
+    <div class="panel">
+        <div style="margin-bottom: 10px; color: var(--nova-glow); letter-spacing: 2px;">SET TARGET TIME</div>
+        <input type="time" id="custom-t" step="1" value="00:05:00" class="custom-time-input">
+        <div id="t-disp" class="display-huge">00:05:00</div>
+        <div class="controls">
+            <button class="nova-btn" onclick="setManualTime()">SET TIME</button>
+            <button class="nova-btn" onclick="startT()" style="border-color: #00ff00; color: #00ff00;">START</button>
+            <button class="nova-btn" onclick="pauseT()">STOP</button>
+            <button class="nova-btn" onclick="resetT()">RESET</button>
+        </div>
+    </div>
+</div>
+
+<!-- CRONOMETRO -->
+<div id="tab-chrono" class="content">
+    <div class="panel">
+        <div id="c-disp" class="display-huge">00:00.00</div>
+        <div class="controls">
+            <button class="nova-btn" onclick="startC()">START</button>
+            <button class="nova-btn" onclick="pauseC()">STOP</button>
+            <button class="nova-btn" onclick="resetC()">RESET</button>
+        </div>
+    </div>
+</div>
+
+<!-- MARCADOR -->
+<div id="tab-score" class="content">
+    <div style="display:flex; width: 100%; justify-content: space-evenly; gap: 20px;">
+        <div class="panel" style="flex:1">
+            <input type="text" class="team-input" value="LOCAL">
+            <div id="s1" class="display-huge" style="font-size: 8vw;">0</div>
+            <button class="nova-btn" onclick="mod('s1',1)">+</button>
+            <button class="nova-btn" onclick="mod('s1',-1)">-</button>
+        </div>
+        <div class="panel" style="flex:1">
+            <input type="text" class="team-input" value="VISITA">
+            <div id="s2" class="display-huge" style="font-size: 8vw;">0</div>
+            <button class="nova-btn" onclick="mod('s2',1)">+</button>
+            <button class="nova-btn" onclick="mod('s2',-1)">-</button>
+        </div>
+    </div>
+</div>
+
+<!-- CALCULADORA -->
+<div id="tab-calc" class="content">
+    <div class="calc-wrapper">
+        <div id="calc-screen">0</div>
+        <div class="calc-grid">
+            <button class="c-btn" onclick="mathOp('sin')">sin</button>
+            <button class="c-btn" onclick="mathOp('cos')">cos</button>
+            <button class="c-btn" onclick="mathOp('tan')">tan</button>
+            <button class="c-btn" onclick="mathOp('sqrt')">√</button>
+            <button class="c-btn" onclick="addC('**')">^</button>
+            <button class="c-btn" onclick="clearC()" style="color:var(--nova-orange)">AC</button>
+            <button class="c-btn" onclick="addC('(')">(</button>
+            <button class="c-btn" onclick="addC(')')">)</button>
+            <button class="c-btn" onclick="addC('/')">÷</button>
+            <button class="c-btn" onclick="mathOp('log')">log</button>
+            <button class="c-btn" onclick="addC('7')">7</button>
+            <button class="c-btn" onclick="addC('8')">8</button>
+            <button class="c-btn" onclick="addC('9')">9</button>
+            <button class="c-btn" onclick="addC('*')">×</button>
+            <button class="c-btn" onclick="addC('Math.PI')">π</button>
+            <button class="c-btn" onclick="addC('4')">4</button>
+            <button class="c-btn" onclick="addC('5')">5</button>
+            <button class="c-btn" onclick="addC('6')">6</button>
+            <button class="c-btn" onclick="addC('-')">-</button>
+            <button class="c-btn" onclick="mathOp('exp')">exp</button>
+            <button class="c-btn" onclick="addC('1')">1</button>
+            <button class="c-btn" onclick="addC('2')">2</button>
+            <button class="c-btn" onclick="addC('3')">3</button>
+            <button class="c-btn" onclick="addC('+')">+</button>
+            <button class="c-btn" style="background:var(--nova-orange); color:black" onclick="resC()">=</button>
+            <button class="c-btn" style="grid-column: span 2" onclick="addC('0')">0</button>
+            <button class="c-btn" onclick="addC('.')">.</button>
+            <button class="c-btn" style="grid-column: span 2" onclick="backspace()">DEL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function show(id, b) {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        b.classList.add('active');
+    }
+
+    // --- LOGICA TIMER ---
+    let tTime = 300, tInterval;
+    function setManualTime() {
+        pauseT();
+        const val = document.getElementById('custom-t').value; // HH:MM:SS o HH:MM
+        const parts = val.split(':');
+        let total = 0;
+        if(parts.length === 3) total = (+parts[0])*3600 + (+parts[1])*60 + (+parts[2]);
+        else total = (+parts[0])*3600 + (+parts[1])*60;
+        tTime = total;
+        drawT();
+    }
+    function startT() { if(!tInterval && tTime > 0) tInterval = setInterval(()=>{ if(tTime>0){tTime--; drawT();} else { clearInterval(tInterval); tInterval=null; } },1000); }
+    function pauseT() { clearInterval(tInterval); tInterval = null; }
+    function resetT() { pauseT(); setManualTime(); }
+    function drawT() { 
+        let h=Math.floor(tTime/3600), m=Math.floor((tTime%3600)/60), s=tTime%60;
+        document.getElementById('t-disp').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    // --- CRONO ---
+    let cTime = 0, cInterval;
+    function startC() { if(!cInterval) cInterval = setInterval(()=>{ cTime += 10; drawC(); }, 10); }
+    function pauseC() { clearInterval(cInterval); cInterval = null; }
+    function resetC() { pauseC(); cTime = 0; drawC(); }
+    function drawC() {
+        let ms = Math.floor((cTime % 1000) / 10), s = Math.floor((cTime / 1000) % 60), m = Math.floor(cTime / 60000);
+        document.getElementById('c-disp').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}.${ms.toString().padStart(2,'0')}`;
+    }
+
+    // --- SCORE ---
+    function mod(id, v) { let e=document.getElementById(id), val=parseInt(e.innerText)+v; if(val>=0) e.innerText=val; }
+
+    // --- CALCULADORA ---
+    let screen = document.getElementById('calc-screen');
+    function addC(v) { if(screen.innerText === '0') screen.innerText = v; else screen.innerText += v; }
+    function clearC() { screen.innerText = '0'; }
+    function backspace() { screen.innerText = screen.innerText.slice(0, -1) || '0'; }
+    function resC() { 
+        try { screen.innerText = eval(screen.innerText.replace('π', 'Math.PI')).toFixed(2); } catch { screen.innerText = "Error"; } 
+    }
+    function mathOp(op) {
+        try {
+            let v = eval(screen.innerText);
+            screen.innerText = Math[op](v).toFixed(4);
+        } catch { screen.innerText = "Error"; }
+    }
+
+    // TECLADO
+    window.addEventListener('keydown', (e) => {
+        if (!document.getElementById('tab-calc').classList.contains('active')) return;
+        if (e.key >= '0' && e.key <= '9' || ['+', '-', '*', '/', '.', '(', ')'].includes(e.key)) addC(e.key);
+        if (e.key === 'Enter') resC();
+        if (e.key === 'Backspace') backspace();
+    });
+</script>
+
+</body>
+</html>
